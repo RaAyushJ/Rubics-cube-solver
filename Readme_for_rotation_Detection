@@ -1,0 +1,89 @@
+#  Rubik's Cube Rotation Predictor using CNN (Keras in Python)
+
+This project predicts the **rotation angle** of Rubik's Cube images using a **Convolutional Neural Network (CNN)** in TensorFlow/Keras. The model is trained on a dataset of 5000 labeled cube images and aims to perform regression to predict continuous rotation values.
+
+##  Dataset Structure
+
+Uploaded dataset (from `archive(1).zip`) contains:
+
+archive(1).zip
+├── training/
+│ ├── images/
+│ └── labels.csv (filename, xRot)
+├── test/
+│ ├── images/
+
+
+- `images/`: 512x512 RGB images of Rubik's cubes.
+- `labels.csv`: Contains image filenames and corresponding rotation angles (in degrees).
+
+##  Features
+
+- Preprocessing and loading of high-resolution cube images
+- CNN architecture built for **regression** (predicting continuous angles)
+- GPU-accelerated training on **Google Colab**
+- Evaluation using Mean Absolute Error (MAE) and Mean Squared Error (MSE)
+- Option to expand model with transfer learning
+
+##  Tech Stack
+
+- Python
+- TensorFlow / Keras
+- OpenCV
+- NumPy, Pandas, Matplotlib
+- Google Colab (with GPU runtime)
+
+##  How to Run
+
+1. Upload `archive(1).zip` in Google Colab
+2. Unzip using:
+
+```python
+import zipfile
+with zipfile.ZipFile("archive(1).zip", 'r') as zip_ref:
+    zip_ref.extractall("rubiks_dataset")
+
+    Follow notebook/code to:
+
+        Load and preprocess images
+
+        Build and train the CNN
+
+        Predict and evaluate
+
+ Model Architecture
+
+    Conv2D → ReLU → MaxPooling
+
+    Conv2D → ReLU → MaxPooling
+
+    Conv2D → ReLU → MaxPooling
+
+    Flatten → Dense(128) → Dense(1)
+
+Loss Function: Mean Squared Error
+Optimizer: Adam
+ Results
+
+After training for ~20 epochs:
+
+    MAE (Test Set): ~1.8 degrees
+
+    Validation Loss: Decreasing trend with early stopping
+
+    These can vary depending on image resolution, batch size, and epochs.
+
+ Future Scope
+
+    Switch to transfer learning using ResNet50 or EfficientNet
+
+    Use test data for prediction and visualization
+
+    Turn into a web app with Flask/Streamlit for real-time cube angle prediction
+
+    Convert to classification for fixed angle bins
+
+ Author
+
+Ayush Raj
+If you found this useful, feel free to  the repo and connect!
