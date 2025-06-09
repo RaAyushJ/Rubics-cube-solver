@@ -1,0 +1,111 @@
+import zipfile
+import os
+
+# Unzip the archive
+zip_path = "/content/archive(1).zip"
+extract_path = "/content/rubiks_dataset"
+
+with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+    zip_ref.extractall(extract_path)
+
+# Check directory structure
+os.listdir(extract_path)
+
+
+import os
+import pandas as pd
+from PIL import Image
+import matplotlib.pyplot as plt
+
+# Correct paths
+images_dir = "/content/rubiks_dataset/training/training/images"
+labels_path = "/content/rubiks_dataset/training/training/labels.csv"
+
+# Load labels
+labels_df = pd.read_csv(labels_path)
+print("Labels loaded:")
+print(labels_df.head())
+
+# Show first image and label
+first_filename = labels_df.iloc[0]["filename"]
+first_xrot = labels_df.iloc[0]["xRot"]
+first_img_path = os.path.join(images_dir, first_filename)
+
+# Open and display image
+img = Image.open(first_img_path)
+plt.imshow(img)
+plt.title(f"Rotation: {first_xrot:.2f}°")
+plt.axis("off")
+plt.show()
+
+
+import numpy as np
+from PIL import Image
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+from tensorflow.keras.optimizers import Adam
+import gc
+
+# Model as per your original architecture
+model = Sequential([
+    Conv2D(512, (3, 3), activation='relu', input_shape=(512, 512, 3)),
+    MaxPooling2D(pool_size=(2, 2)),
+    Conv2D(256, (3, 3), activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+    Conv2D(128, (3, 3), activation='relu'),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dense(1, activation='relu')
+])
+
+model.compile(
+    optimizer=Adam(),
+    loss='mean_squared_error',
+    metrics=['mean_squared_error', 'mean_absolute_error']
+)
+
+# Training in chunks
+history_list = []
+BATCH_SIZE = 100
+NUM_CHUNKS = 5000 // BATCH_SIZE
+
+for i in range(NUM_CHUNKS):
+    print(f"\nProcessing chunk {i+1}/{NUM_CHUNKS}")
+
+    # Prepare image array
+    image_list = []
+    label_list = []
+
+    for j in range(i * BATCH_SIZE, (i + 1) * BATCH_SIZE):
+        fname = labels_df.iloc[j]["filename"]
+        xrot = labels_df.iloc[j]["xRot"]
+
+        img_path = os.path.join(images_dir, fname)
+        img = Image.open(img_path).resize((512, 512))
+        img_arr = np.array(img) / 255.0  # Keep original size & quality
+        image_list.append(img_arr)
+        label_list.append(xrot)
+
+    images_array = np.stack(image_list)
+    labels_array = np.array(label_list)
+
+    # Train/Test split
+    indices = np.arange(len(images_array))
+    np.random.shuffle(indices)
+    split = int(len(indices) * 0.75)
+
+    train_idx, test_idx = indices[:split], indices[split:]
+    train_x, test_x = images_array[train_idx], images_array[test_idx]
+    train_y, test_y = labels_array[train_idx], labels_array[test_idx]
+
+    # Train the model
+    history = model.fit(
+        train_x, train_y,
+        validation_data=(test_x, test_y),
+        epochs=10,
+        batch_size=2,
+        verbose=1
+    )
+    
+    history_list.append(history)
+    gc.collect()
